@@ -20,35 +20,12 @@ if TYPE_CHECKING:
 async def get_vector_database(actor_input: ActorInputsDb | None, embeddings: Embeddings) -> VectorDb:
     """Get database based on the integration type."""
 
-    if isinstance(actor_input, ChromaIntegration):
-        from .vector_stores.chroma import ChromaDatabase
 
-        return ChromaDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, MilvusIntegration):
-        from .vector_stores.milvus import MilvusDatabase
-
-        return MilvusDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, PgvectorIntegration):
-        from .vector_stores.pgvector import PGVectorDatabase
-
-        return PGVectorDatabase(actor_input, embeddings)
 
     if isinstance(actor_input, PineconeIntegration):
         from .vector_stores.pinecone import PineconeDatabase
 
         return PineconeDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, QdrantIntegration):
-        from .vector_stores.qdrant import QdrantDatabase
-
-        return QdrantDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, WeaviateIntegration):
-        from .vector_stores.weaviate import WeaviateDatabase
-
-        return WeaviateDatabase(actor_input, embeddings)
 
     raise ValueError("Unknown integration type")
 
