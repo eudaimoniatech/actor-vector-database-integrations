@@ -55,23 +55,23 @@ async def get_vector_database(actor_input: ActorInputsDb | None, embeddings: Emb
 
 def update_db_with_crawled_data(vector_store: VectorDb, documents: list[Document]) -> None:
     """Update the database with new crawled data."""
-
+    Actor.log.info("PINECONE namespace: %s", vector_store.namespace)
     data_add, ids_update_last_seen, ids_del = compare_crawled_data_with_db(vector_store, documents)
     Actor.log.info("Objects: to add: %s, to update last_seen_at: %s, to delete: %s", len(data_add), len(ids_update_last_seen), len(ids_del))
 
     # Delete data that were updated
     if ids_del:
-        vector_store.delete(ids_del)
+        vector_store.delete(ids_del, namespace=vector_store.namespace)
         Actor.log.info("Deleted %s objects from the vector store where the content has changed since the last update", len(ids_del))
 
     # Add new data
     if data_add:
-        vector_store.add_documents(data_add, ids=[d.metadata["chunk_id"] for d in data_add])
+        vector_store.add_documents(data_add, ids=[d.metadata["chunk_id"] for d in data_add], namespace=vector_store.namespace)
         Actor.log.info("Added %s new objects to the vector store", len(data_add))
 
     # Update metadata data
     if ids_update_last_seen:
-        vector_store.update_last_seen_at(ids_update_last_seen)
+        vector_store.update_last_seen_at(ids_update_last_seen, namespace=vector_store.namespace)
         Actor.log.info("Updated last_seen_at metadata for %s objects", len(ids_update_last_seen))
 
 
@@ -81,7 +81,7 @@ def delete_expired_objects(vector_store: VectorDb, timestamp_expired: int) -> No
     if timestamp_expired:
         dt = datetime.datetime.fromtimestamp(timestamp_expired, tz=datetime.timezone.utc)
         Actor.log.info("About to delete objects from the database that were not seen since %s (timestamp: %s)", dt, timestamp_expired)
-        vector_store.delete_expired(timestamp_expired)
+        vector_store.delete_expired(timestamp_expired, namespace=vector_store.namespace)
 
 
 def compare_crawled_data_with_db(vector_store: VectorDb, data: list[Document]) -> tuple[list[Document], list[str], list[str]]:
@@ -95,7 +95,7 @@ def compare_crawled_data_with_db(vector_store: VectorDb, data: list[Document]) -
     ids_delete: set[str] = set()
     ids_update_last_seen: set[str] = set()
 
-    crawled_db = {item_id: vector_store.get_by_item_id(item_id) for item_id in {d.metadata["item_id"] for d in data}}
+    crawled_db = {item_id: vector_store.get_by_item_id(item_id, namespace=vector_store.namespace) for item_id in {d.metadata["item_id"] for d in data}}
 
     for d in data:
         if res := crawled_db.get(d.metadata["item_id"]):
