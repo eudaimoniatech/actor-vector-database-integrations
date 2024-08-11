@@ -22,7 +22,7 @@ class PineconeDatabase(PineconeVectorStore, VectorDbBase):
     def __init__(self, actor_input: PineconeIntegration, embeddings: Embeddings) -> None:
         self.client = PineconeClient(api_key=actor_input.pineconeApiKey, source_tag=PINECONE_SOURCE_TAG)
         self.index = self.client.Index(actor_input.pineconeIndexName)
-        self.namespace = actor_input.pineconeNamespace or 'uid_ufvgUvs8y9fha64K2sbndVZJ7Sp2_DLn3MJOLXh8I51hj1a7W'
+        self.namespace = actor_input.pineconeNamespace
         super().__init__(index=self.index, embedding=embeddings)
         self._dummy_vector: list[float] = []
 

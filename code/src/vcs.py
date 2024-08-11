@@ -7,7 +7,7 @@ from apify import Actor
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 
-from .models import ChromaIntegration, MilvusIntegration, PgvectorIntegration, PineconeIntegration, QdrantIntegration, WeaviateIntegration
+from .models import PineconeIntegration
 from .utils import get_chunks_to_delete, get_chunks_to_update
 
 if TYPE_CHECKING:
@@ -20,35 +20,10 @@ if TYPE_CHECKING:
 async def get_vector_database(actor_input: ActorInputsDb | None, embeddings: Embeddings) -> VectorDb:
     """Get database based on the integration type."""
 
-    if isinstance(actor_input, ChromaIntegration):
-        from .vector_stores.chroma import ChromaDatabase
-
-        return ChromaDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, MilvusIntegration):
-        from .vector_stores.milvus import MilvusDatabase
-
-        return MilvusDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, PgvectorIntegration):
-        from .vector_stores.pgvector import PGVectorDatabase
-
-        return PGVectorDatabase(actor_input, embeddings)
-
     if isinstance(actor_input, PineconeIntegration):
         from .vector_stores.pinecone import PineconeDatabase
 
         return PineconeDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, QdrantIntegration):
-        from .vector_stores.qdrant import QdrantDatabase
-
-        return QdrantDatabase(actor_input, embeddings)
-
-    if isinstance(actor_input, WeaviateIntegration):
-        from .vector_stores.weaviate import WeaviateDatabase
-
-        return WeaviateDatabase(actor_input, embeddings)
 
     raise ValueError("Unknown integration type")
 
@@ -95,7 +70,9 @@ def compare_crawled_data_with_db(vector_store: VectorDb, data: list[Document]) -
     ids_delete: set[str] = set()
     ids_update_last_seen: set[str] = set()
 
-    crawled_db = {item_id: vector_store.get_by_item_id(item_id, namespace=vector_store.namespace) for item_id in {d.metadata["item_id"] for d in data}}
+    crawled_db = {
+        item_id: vector_store.get_by_item_id(item_id, namespace=vector_store.namespace) for item_id in {d.metadata["item_id"] for d in data}
+    }
 
     for d in data:
         if res := crawled_db.get(d.metadata["item_id"]):

@@ -4,7 +4,7 @@ from apify import Actor
 
 from .constants import SupportedVectorStores
 from .main import run_actor
-from .models import ChromaIntegration, MilvusIntegration, PgvectorIntegration, PineconeIntegration, QdrantIntegration, WeaviateIntegration
+from .models import PineconeIntegration
 
 
 async def main() -> None:
@@ -30,18 +30,8 @@ async def main() -> None:
         actor_type = arg.split("/")[-1]
         Actor.log.info("Received start argument (vector database name): %s", actor_type)
 
-        if actor_type == SupportedVectorStores.chroma.value:
-            await run_actor(ChromaIntegration(**actor_input), actor_input)
-        if actor_type == SupportedVectorStores.milvus.value:
-            await run_actor(MilvusIntegration(**actor_input), actor_input)
-        elif actor_type == SupportedVectorStores.pgvector.value:
-            await run_actor(PgvectorIntegration(**actor_input), actor_input)
-        elif actor_type == SupportedVectorStores.pinecone.value:
+        if actor_type == SupportedVectorStores.pinecone.value:
             await run_actor(PineconeIntegration(**actor_input), actor_input)
-        elif actor_type == SupportedVectorStores.qdrant.value:
-            await run_actor(QdrantIntegration(**actor_input), actor_input)
-        elif actor_type == SupportedVectorStores.weaviate.value:
-            await run_actor(WeaviateIntegration(**actor_input), actor_input)
         else:
             await Actor.exit(
                 exit_code=10,
