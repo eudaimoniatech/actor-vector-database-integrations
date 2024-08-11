@@ -24,6 +24,11 @@ class PineconeIntegration(BaseModel):
         description='Name of the Pinecone index where the data will be stored',
         title='Pinecone index name',
     )
+    pineconeNamespace: str = Field(
+        ...,
+        description='Namespace for the Project in Pinecone',
+        title='Project namespace on Pinecone',
+    )
     embeddingsProvider: EmbeddingsProvider = Field(
         ...,
         description='Choose the embeddings provider to use for generating embeddings',
