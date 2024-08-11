@@ -17,6 +17,12 @@
       "description": "Name of the Pinecone index where the data will be stored",
       "editor": "textfield"
     },
+    "pineconeNamespace": {
+      "title": "Pinecone namespace",
+      "type": "string",
+      "description": "Namespace for the Pinecone index",
+      "editor": "textfield"
+    },
     "embeddingsProvider": {
       "title": "Embeddings provider (as defined in the langchain API)",
       "description": "Choose the embeddings provider to use for generating embeddings",

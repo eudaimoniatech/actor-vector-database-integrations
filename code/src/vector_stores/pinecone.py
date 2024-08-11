@@ -22,6 +22,7 @@ class PineconeDatabase(PineconeVectorStore, VectorDbBase):
     def __init__(self, actor_input: PineconeIntegration, embeddings: Embeddings) -> None:
         self.client = PineconeClient(api_key=actor_input.pineconeApiKey, source_tag=PINECONE_SOURCE_TAG)
         self.index = self.client.Index(actor_input.pineconeIndexName)
+        self.namespace = actor_input.pineconeIndexName
         super().__init__(index=self.index, embedding=embeddings)
         self._dummy_vector: list[float] = []
 
@@ -39,7 +40,7 @@ class PineconeDatabase(PineconeVectorStore, VectorDbBase):
 
         Pinecone does not support to get objects with filter on metadata. Hence we need to do similarity search
         """
-        results = self.index.query(vector=self.dummy_vector, top_k=10_000, filter={"item_id": item_id}, include_metadata=True)
+        results = self.index.query(vector=self.dummy_vector, top_k=10_000, filter={"item_id": item_id}, include_metadata=True, namespace=self.namespace)
         return [Document(page_content="", metadata=d["metadata"] | {"chunk_id": d["id"]}) for d in results["matches"]]
 
     def update_last_seen_at(self, ids: list[str], last_seen_at: int | None = None) -> None:
@@ -47,7 +48,7 @@ class PineconeDatabase(PineconeVectorStore, VectorDbBase):
 
         last_seen_at = last_seen_at or int(datetime.now(timezone.utc).timestamp())
         for _id in ids:
-            self.index.update(id=_id, set_metadata={"last_seen_at": last_seen_at})
+            self.index.update(id=_id, set_metadata={"last_seen_at": last_seen_at}, namespace=self.namespace)
 
     def delete_expired(self, expired_ts: int) -> None:
         """Delete objects from the index that are expired."""
@@ -55,7 +56,7 @@ class PineconeDatabase(PineconeVectorStore, VectorDbBase):
         res = self.search_by_vector(self.dummy_vector, filter_={"last_seen_at": {"$lt": expired_ts}})
         ids = [d.metadata.get("id") or d.metadata.get("chunk_id", "") for d in res]
         ids = [_id for _id in ids if _id]
-        self.delete(ids=ids)
+        self.delete(ids=ids, namespace=self.namespace)
 
     def delete_all(self) -> None:
         """Delete all objects from the index.
@@ -64,9 +65,9 @@ class PineconeDatabase(PineconeVectorStore, VectorDbBase):
         We can use delete_all flag but that is raising 404 exception if namespace is not found
         """
         if r := list(self.index.list(prefix="")):
-            self.delete(ids=r)
+            self.delete(ids=r, namespace=self.namespace)
 
     def search_by_vector(self, vector: list[float], k: int = 10_000, filter_: dict | None = None) -> list[Document]:
         """Search by vector and return the results."""
-        res = self.similarity_search_by_vector_with_score(vector, k=k, filter=filter_)
+        res = self.similarity_search_by_vector_with_score(vector, k=k, filter=filter_,namespace=self.namespace)
         return [r for r, _ in res]
