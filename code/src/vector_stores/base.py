@@ -12,19 +12,19 @@ class VectorDbBase(ABC):
     unit_test_wait_for_index = 0
 
     @abstractmethod
-    def get_by_item_id(self, item_id: str) -> list[Document]:
+    def get_by_item_id(self, item_id: str, namespace: str | None = None) -> list[Document]:
         """Get documents by item_id."""
 
     @abstractmethod
-    def update_last_seen_at(self, ids: list[str], last_seen_at: int | None = None) -> None:
+    def update_last_seen_at(self, ids: list[str], last_seen_at: int | None = None, namespace: str | None = None) -> None:
         """Update last_seen_at field in the database."""
 
     @abstractmethod
-    def delete_expired(self, expired_ts: int) -> None:
+    def delete_expired(self, expired_ts: int, namespace: str | None = None) -> None:
         """Delete documents that are older than the ts_expired timestamp."""
 
     @abstractmethod
-    def delete_all(self) -> None:
+    def delete_all(self, namespace: str | None = None) -> None:
         """Delete all documents from the database (internal function for testing purposes)."""
 
     @abstractmethod
@@ -32,5 +32,5 @@ class VectorDbBase(ABC):
         """Check if the database is connected."""
 
     @abstractmethod
-    def search_by_vector(self, vector: list[float], k: int, filter_: dict | None = None) -> list[Document]:
+    def search_by_vector(self, vector: list[float], k: int, filter_: dict | None = None, namespace: str | None = None) -> list[Document]:
         """Search for documents by vector. Return a list of documents."""
