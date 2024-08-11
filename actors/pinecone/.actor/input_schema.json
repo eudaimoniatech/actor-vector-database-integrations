@@ -140,6 +140,7 @@
   },
   "required": [
     "pineconeIndexName",
+    "pineconeNamespace",
     "pineconeApiKey",
     "embeddingsProvider",
     "embeddingsApiKey",
